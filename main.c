@@ -6,7 +6,7 @@
 /*   By: lboudjel <lboudjel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/01 13:13:45 by lboudjel          #+#    #+#             */
-/*   Updated: 2023/12/07 16:07:20 by lboudjel         ###   ########.fr       */
+/*   Updated: 2023/12/07 21:46:11 by lboudjel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,28 +15,36 @@
 void	access_cmd(t_pipex *pipex)
 {
 	int i;
-	char	**split_cmd;
-	//char	**tab2;
+	int j;
+	char *access_cmd;
+	
 	i = 0;
+	j = 0;
 	pipex->args_path = get_path(pipex->envp);
-	split_cmd = ft_split(pipex->arg_cmd[ind], ' ');
-	// tab2 = ft_split(pipex->arg_cmd[ind], ' ');
-	// while (tab2[i])
-	// {
-	// 	printf("tab2: %s\n", tab2[i]);
-	// 	i++;
-	// }
+	pipex->cmd = ft_split(pipex->arg_cmd[i], ' ');
 	while (pipex->args_path[i])
 	{
-		split_cmd = ft_split(pipex->arg_cmd[ind], ' ');
-		if (access(args[i], X_OK) == 0)
+		access_cmd = ft_strjoin(pipex->args_path[j], pipex->cmd[0]);
+		if (access(access_cmd, F_OK | X_OK) != 1)
 		{
-			printf("path: %s\n", args[i]);
-			break ;
+			printf("path: %s\n", access_cmd);
+			break;
 		}
+		free(access_cmd);
+		j++;
+		printf("tab2: %s\n", pipex->args_path[i]);
 		i++;
 	}
-	//checker comment recuperer les args et les stocker pour les joins 
+	printf("path: %s\n", access_cmd);
+	//je pense que ca puduc mais c un bon debut
+	// + ya ca a rajouter qlq part 
+	// 
+	// if (ft_strchr(tab2[0], '/'))
+	// {
+	// 	if (access(tab2[0], F_OK | X_OK) != -1)
+	// 		return (ft_strdup(tab2[0]));
+	// 	return (NULL);
+	// }
 }
 
 char	**get_path(char **envp)
@@ -52,10 +60,11 @@ char	**get_path(char **envp)
 	}
 	return (NULL);
 }
-// void	child(t_pipex *pipex)
-// {
-	
-// }
+void	child(t_pipex *pipex)
+{
+		dup2(pipex->fd[0], STDIN_FILENO);
+		// execve();
+}
 
 void	piping_and_forking(t_pipex *pipex)
 {
@@ -72,11 +81,10 @@ void	piping_and_forking(t_pipex *pipex)
 	}
 	// if (pipex->pid[0] == 0)
 	// {	
-	// 	dup2();
-	// 	execve();
+	// 	child(pipex);
 	// }
 	// else	
-		// close();
+	// 	close();
 	
 		
 }
@@ -86,7 +94,7 @@ void	init_struct(t_pipex *pipex, int argc, char **argv, char **envp)
 	pipex->outfile = argv[argc - 1];
 	pipex->envp = envp;
 	pipex->nbr_cmd = argc - 3;
-	//pipex->arg_cmd = argv + 2; //demander a matheo pq il fait ca de cette facon
+	pipex->arg_cmd = argv + 2; 
 }
 int	main(int argc, char **argv, char **envp)
 {
