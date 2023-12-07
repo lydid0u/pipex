@@ -6,51 +6,100 @@
 /*   By: lboudjel <lboudjel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/01 13:13:45 by lboudjel          #+#    #+#             */
-/*   Updated: 2023/12/05 15:16:23 by lboudjel         ###   ########.fr       */
+/*   Updated: 2023/12/07 16:07:20 by lboudjel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "pipex.h"
 
-// void	access_cmd(t_pipex *pipex)
-// {
-// 	int i;
-// 	char	**args;
+void	access_cmd(t_pipex *pipex)
+{
+	int i;
+	char	**split_cmd;
+	//char	**tab2;
+	i = 0;
+	pipex->args_path = get_path(pipex->envp);
+	split_cmd = ft_split(pipex->arg_cmd[ind], ' ');
+	// tab2 = ft_split(pipex->arg_cmd[ind], ' ');
+	// while (tab2[i])
+	// {
+	// 	printf("tab2: %s\n", tab2[i]);
+	// 	i++;
+	// }
+	while (pipex->args_path[i])
+	{
+		split_cmd = ft_split(pipex->arg_cmd[ind], ' ');
+		if (access(args[i], X_OK) == 0)
+		{
+			printf("path: %s\n", args[i]);
+			break ;
+		}
+		i++;
+	}
+	//checker comment recuperer les args et les stocker pour les joins 
+}
 
-// 	i = 0;
-// 	args = ft_split(pipex->path, ':');
-// 	while (args[i])
-// 	{
-// 		if()
-// 		i++;
-// 	}
-// }
-
-void	get_path(t_pipex *pipex, char **envp)
+char	**get_path(char **envp)
 {
 	int	i;
 
 	i = 0;
 	while (envp[i])
 	{
-		if (ft_strncmp(envp[i], "PATH=", 5) == 0)
-		{
-			pipex->path = ft_strdup(envp[i] + 5);
-			break ;
-		}
+		if (!ft_strncmp(envp[i], "PATH=", 5))
+			return (ft_split(envp[i] + 5, ':'));
 		i++;
 	}
+	return (NULL);
 }
+// void	child(t_pipex *pipex)
+// {
+	
+// }
 
+void	piping_and_forking(t_pipex *pipex)
+{
+	if (pipe(pipex->fd) == -1)
+	{
+		perror("pipe");
+		exit(EXIT_FAILURE);
+	}
+	pipex->pid[0] = fork();
+	if (pipex->pid[0] == -1)
+	{
+		perror("fork");
+		exit(EXIT_FAILURE);
+	}
+	// if (pipex->pid[0] == 0)
+	// {	
+	// 	dup2();
+	// 	execve();
+	// }
+	// else	
+		// close();
+	
+		
+}
+void	init_struct(t_pipex *pipex, int argc, char **argv, char **envp)
+{
+	pipex->infile = argv[2];
+	pipex->outfile = argv[argc - 1];
+	pipex->envp = envp;
+	pipex->nbr_cmd = argc - 3;
+	//pipex->arg_cmd = argv + 2; //demander a matheo pq il fait ca de cette facon
+}
 int	main(int argc, char **argv, char **envp)
 {
-	(void)argc;
-	(void)argv;
-	(void)envp;
 	static t_pipex	pipex = {0};
-
-	get_path(&pipex, envp);
-	// access_cmd(&pipex);
+	
+	init_struct(&pipex, argc, argv, envp);
+	access_cmd(&pipex);
+	//check_args;
+	//parse_cmd;
+	//parse_args
+	// while(pipex.arg_cmd)
+		// piping_and_forking(&pipex);
+	// get_path(&pipex, envp);	
 }
 
 // int main()

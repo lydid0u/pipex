@@ -6,7 +6,7 @@
 /*   By: lboudjel <lboudjel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/01 13:15:22 by lboudjel          #+#    #+#             */
-/*   Updated: 2023/12/04 14:48:29 by lboudjel         ###   ########.fr       */
+/*   Updated: 2023/12/07 16:02:42 by lboudjel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,17 @@ typedef struct pipex
 {
 	char	*path;
     char    **envp;
+    char	*infile;
+    char	*outfile;
+    int		nbr_cmd;
+    char	**arg_cmd;
+    int     fd[2];
+    int     pid[2];
+    char    **args_path;
+    char    **cmd;
 }			t_pipex;
+
+void	init_struct(t_pipex *pipex, int argc, char **argv, char **envp);
+char	**get_path(char **envp);
 
 #endif

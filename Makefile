@@ -6,7 +6,7 @@ PRINTF    = ft_printf
 FT_PRINTF = ft_printf/libftprintf.a
 LIBFT     = libft
 FT_LIBFT  = libft/libft.a
-SRC       = main.c test.c
+SRC       = main.c
 OBJ       = ${SRC:.c=.o}
 
 all: ${NAME}
