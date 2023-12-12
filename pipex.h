@@ -6,7 +6,7 @@
 /*   By: lboudjel <lboudjel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/01 13:15:22 by lboudjel          #+#    #+#             */
-/*   Updated: 2023/12/07 21:25:53 by lboudjel         ###   ########.fr       */
+/*   Updated: 2023/12/11 19:10:47 by lboudjel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@
 # include <sys/types.h>
 # include <sys/wait.h>
 # include <unistd.h>
+#include <signal.h>
 
 typedef struct pipex
 {
@@ -31,8 +32,10 @@ typedef struct pipex
     char	*outfile;
     int		nbr_cmd;
     char	**arg_cmd;
+    int     infile_fd;
+    int     outfile_fd;
     int     fd[2];
-    int     pid[2];
+    int     pid;
     char    **args_path;
     char    **cmd;
 }			t_pipex;
