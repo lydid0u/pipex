@@ -6,24 +6,25 @@
 /*   By: lboudjel <lboudjel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/01 13:13:45 by lboudjel          #+#    #+#             */
-/*   Updated: 2023/12/12 15:15:00 by lboudjel         ###   ########.fr       */
+/*   Updated: 2023/12/14 19:11:31 by lboudjel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+// strace -o /dev/pts/11 -f 
+
 #include "pipex.h"
 
-char	*access_cmd(t_pipex *pipex, char **envp, int i)
+char	*access_cmd(t_pipex *pipex, int i)
 {
 	int j;
 	char *access_cmd;
 	
 	j = 0;
-	(void)i;
-	pipex->args_path = get_path(envp);
 	while (pipex->args_path[j])
 	{
+		ft_printf("JE ME SUIS ARRETE LA : \n");
 		access_cmd = ft_strjoin(pipex->args_path[j], pipex->cmd[0]);
-		// printf("cmd found : %s\n", access_cmd);
+		ft_printf("child : %d : %s\n", i, pipex->args_path[j]);
 		if (access(access_cmd, F_OK | X_OK) == 0)
 			return(access_cmd);
 		// printf("cmd no found : %s\n", access_cmd);
@@ -32,7 +33,6 @@ char	*access_cmd(t_pipex *pipex, char **envp, int i)
 	}
 	return (NULL);
 	// + ya ca a rajouter qlq part 
-	// 
 	// if (ft_strchr(tab2[0], '/'))
 	// {
 	// 	if (access(tab2[0], F_OK | X_OK) != -1)
@@ -48,8 +48,8 @@ char	**get_path(char **envp)
 	i = 0;
 	while (envp[i])
 	{
-		if (!ft_strncmp(envp[i], "PATH=", 5))
-			return (ft_split(envp[i] + 5, ':'));
+		if (ft_strncmp(envp[i], "PATH=", 5) == 0)
+			return(ft_split(envp[i] + 5, ':'));
 		i++;
 	}
 	return (NULL);
@@ -62,33 +62,22 @@ char **create_cmd(t_pipex *pipex)
 
 	i = 0;
 	temp = ft_split(pipex->arg_cmd[i], ' ');
-	while (temp[i])
-	{
-		printf("%s\n", temp[i]);
-		i++;	
-	}
+	// while (temp[i])
+	// {
+	// 	printf("%s\n", temp[i]);
+	// 	i++;	
+	// }
 	temp[i] = NULL;
 	//fair eun str len de temp et ajouter 1 pour malloc et ajouter Null a la fin pour execve
 	return temp;
 }
 
-void	child(t_pipex *pipex, char **envp, int i)
-{
-	char *path;
-
-	pipex->cmd = create_cmd(pipex);
-	path = access_cmd(pipex, envp, i);
-	if (path)
-		execve(path, pipex->cmd, NULL);
-	//ajouter perror "bonne pratique" a mettre partout
-}
-
-void	*redirection(t_pipex *pipex, int i)
+void	redirection(t_pipex *pipex, int i)
 {
 	if (i == 0)
-	{
+	{	
 		if(dup2(pipex->infile_fd, STDIN_FILENO) == -1)
-			return (perror("dup"), NULL);
+			return (perror("dup infile"));
 		close (pipex->fd[0]);
 		dup2(pipex->fd[1], STDOUT_FILENO);
 		close (pipex->fd[1]);
@@ -96,34 +85,52 @@ void	*redirection(t_pipex *pipex, int i)
 	if (i == 1)
 	{
 		if(dup2(pipex->outfile_fd, STDOUT_FILENO) == -1)
-			return (perror("dup"), NULL);
+			return (perror("dup outfile"));
 		close (pipex->fd[1]);
-		dup2(pipex->fd[0], STDOUT_FILENO);
+		dup2(pipex->fd[0], STDIN_FILENO);
 		close (pipex->fd[0]);
 	}
-	return NULL;
 }
-void	*piping_and_forking(t_pipex *pipex, char **envp)
+
+void	child(t_pipex *pipex, int i)
+{
+	char *path;
+ 
+	// if (i == 1)
+	// 	dup2(pipex->fd[1], 1);
+	redirection(pipex, i);
+	pipex->tab_cmd = ft_split(pipex->arg_cmd[i], ' ');
+	pipex->cmd = create_cmd(pipex);
+	path = access_cmd(pipex, i);
+	// ft_printf("la\n");
+	ft_printf("------------%d\n", i);
+	if (path)
+		execve(path, pipex->cmd, NULL);
+	//ajouter perror "bonne pratique" a mettre partout
+}
+void	piping_and_forking(t_pipex *pipex, char **envp)
 {
 	int		i;
-	
+
 	i = 0;
 	while(i < pipex->nbr_cmd)
 	{
-		pipe(pipex->fd);
-		pipex->pid = fork();
-		redirection(pipex, i);
-		printf("current pid = %d\n", pipex->pid);
-		if (pipex->pid == 0)
-			child(pipex, envp, i);
+		if (pipe(pipex->fd) == -1)
+			return (ft_printf("Function pipe fail\n"), exit(EXIT_FAILURE));
+		pipex->args_path = get_path(envp);
+		pipex->pid[i] = fork();
+		if (pipex->pid[i] == -1)
+			return (ft_printf("Function fork fail\n"), exit(EXIT_FAILURE));
+		else if (pipex->pid[i] == 0)
+			child(pipex, i);
+		close(pipex->fd[1]);
 		i++;
 	}
-	close(pipex->fd[0]);
-	close(pipex->fd[1]);
-	wait(NULL);
-	//a revoir avec waitpid
-	return (NULL);
+	i = 0;
+	while (i < pipex->nbr_cmd)
+		waitpid(pipex->pid[i++], NULL, 0);
 }
+
 void	init_struct(t_pipex *pipex, int argc, char **argv, char **envp)
 {
 	int i;
@@ -137,15 +144,14 @@ void	init_struct(t_pipex *pipex, int argc, char **argv, char **envp)
 }
 int	main(int argc, char **argv, char **envp)
 {
-	(void)envp;
-	(void)argc;
 	static t_pipex	pipex = {0};
 
 	pipex.infile_fd = open(argv[1], O_RDONLY);
 	if (pipex.infile_fd == -1)
-		return (perror("open infile"), 0);
-	pipex.outfile_fd = open(argv[4], O_WRONLY, O_CREAT | O_TRUNC, 0644);
+			return (perror("open infile"), 0);
+	pipex.outfile_fd = open(argv[argc - 1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
 	if (pipex.outfile_fd == -1)
+			if (pipex.outfile_fd == -1)
 		return (perror("open outfile"), 0);
 	init_struct(&pipex, argc, argv, envp);
 	piping_and_forking(&pipex, envp);
