@@ -1,19 +1,20 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   pipex.h                                            :+:      :+:    :+:   */
+/*   pipex_bonus.h                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: lboudjel <lboudjel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/12/01 13:15:22 by lboudjel          #+#    #+#             */
-/*   Updated: 2023/12/21 15:18:11 by lboudjel         ###   ########.fr       */
+/*   Created: 2023/12/19 18:53:10 by lboudjel          #+#    #+#             */
+/*   Updated: 2023/12/21 17:18:12 by lboudjel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef PIPEX_H
-# define PIPEX_H
+#ifndef PIPEX_BONUS_H
+# define PIPEX_BONUS_H
 
 # include "./ft_printf/ft_printf.h"
+# include "./gnl/get_next_line.h"
 # include "./libft/libft.h"
 # include <fcntl.h>
 # include <signal.h>
@@ -38,9 +39,11 @@ typedef struct pipex
 	char	**tab_cmd;
 	char	**args_path;
 	int		prev;
+	int		here_doc;
+	char	*stop_word;
 }			t_pipex;
 
-//				main			//
+//				main				//
 
 void		child(t_pipex *pipex, int i);
 void		piping_and_forking(t_pipex *pipex);
@@ -53,5 +56,8 @@ char		*access_cmd(t_pipex *pipex, int i);
 int			open_fd(t_pipex *pipex, int i);
 char		**get_path(char **envp);
 void		free_tab(char **tab);
+
+//				bonus				//
+void		here_doc(char *infile, char *stop_word);
 
 #endif
